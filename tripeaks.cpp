@@ -100,7 +100,7 @@ void Board::setStock_all(const char *data)
 void Board::print()
 {
     //layer 0
-    printf("   ");
+    printf("\n   ");
     for(int i=0; i<7; i++){
         printf("%c ", i2c(tableau[0][i]));
     }
@@ -228,11 +228,87 @@ void read_stock()
     board.setStock_all(buf);
 }
 /****************************************************************************/
+int test();
+
 int main(int argc, char* argv[])
 {
+    if(argc>=2 && strcmp(argv[1],"--test")==0 ){
+        return test();
+    }
+    
     board.init();
     read_layer3();
     read_stock();
     board.print();
 }
 
+/****************************************************************************/
+#include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/CompilerOutputter.h>
+#include <cppunit/extensions/TestFactoryRegistry.h>
+#include <cppunit/TestResult.h>
+#include <cppunit/TestResultCollector.h>
+#include <cppunit/TestRunner.h>
+#include <cppunit/extensions/HelperMacros.h>
+
+class FunctionTest : public CPPUNIT_NS::TestFixture{
+    //テストクラス
+    CPPUNIT_TEST_SUITE(FunctionTest);//登録のスタート
+    CPPUNIT_TEST(test_test);
+    CPPUNIT_TEST_SUITE_END();//登録の終了
+
+protected:
+    Board *pBoard;
+    void test_test();
+
+public:
+    void setUp();
+    void testDown();
+};
+
+/****************************************************************************/
+CPPUNIT_TEST_SUITE_REGISTRATION(FunctionTest);
+
+//テスト起動時に実行
+void FunctionTest::setUp(){
+    pBoard = new Board();
+}
+
+//テスト終了時に実行
+void FunctionTest::testDown(){
+    delete pBoard;
+}
+
+/****************************************************************************/
+void FunctionTest::test_test()
+{
+    pBoard->init();
+    pBoard->setTableau_layer3all("1234567890");
+    pBoard->setStock_all("1234567890JQK1234567890J");
+    pBoard->print();
+}
+
+/****************************************************************************/
+int test()
+{
+    CPPUNIT_NS::TestResult controller;
+
+    //結果収集
+    CPPUNIT_NS::TestResultCollector result;
+    controller.addListener(&result);
+
+    //途中結果の収集
+    CPPUNIT_NS::BriefTestProgressListener progress;
+    controller.addListener(&progress);
+
+    //テストを走らせる。テストを入れて走る
+    CPPUNIT_NS::TestRunner runner;
+    runner.addTest( CPPUNIT_NS::TestFactoryRegistry::getRegistry().makeTest() );
+    runner.run(controller);
+
+    //結果を標準出力にする。
+    CPPUNIT_NS::CompilerOutputter outputter(&result,CPPUNIT_NS::stdCOut());
+    outputter.write();
+
+    return result.wasSuccessful() ? 0 : 1;
+}
