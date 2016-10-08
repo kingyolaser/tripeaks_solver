@@ -286,6 +286,16 @@ void FunctionTest::test_test()
     pBoard->setTableau_layer3all("1234567890");
     pBoard->setStock_all("1234567890JQK1234567890J");
     pBoard->print();
+    
+    //Pile top=A
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(0,0), false );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(0,1), false );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,0), false );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,1), true );
+    
+    pBoard->remove(3,1);
+    CPPUNIT_ASSERT_EQUAL(pBoard->tableau[3][1], 0);
+    CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 2);
 }
 
 /****************************************************************************/
