@@ -32,6 +32,8 @@ class Board{
     void setTableau_layer3all(const char *);
     void setStock_all(const char *);
     void print();
+    
+    bool isremovable(int layer, int x);
 }board;
 
 /****************************************************************************/
@@ -123,6 +125,26 @@ void Board::print()
     printf("Pile: %c\n", i2c(pile_card) );
 }
 
+/****************************************************************************/
+bool Board::isremovable(int layer, int x)
+{
+    if( tableau[layer][x]==card_empty ){ return false; }
+    if( layer<=2 ){
+        if( tableau[layer+1][x]   != card_empty ){ return false;}
+        if( tableau[layer+1][x+1] != card_empty ){ return false;}
+    }
+    
+    if( tableau[layer][x] == 1 ){
+        if( pile_card != 2 && pile_card != 13 ){ return false; }
+    } else if( tableau[layer][x] == 13 ){
+        if( pile_card != 1 && pile_card != 12 ){ return false; }
+    } else {
+        if( tableau[layer][x]+1 != pile_card
+         && tableau[layer][x]-1 != pile_card ){ return false; }
+    }
+    
+    return true;
+}
 /****************************************************************************/
 void usage()
 {
