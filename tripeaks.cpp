@@ -36,6 +36,8 @@ class Board{
     
     bool isremovable(int layer, int x);
     void remove(int layer, int x);
+    bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
+    void stock2pile();
 }board;
 
 /****************************************************************************/
@@ -153,6 +155,14 @@ void Board::remove(int layer, int x)
     assert(isremovable(layer,x));
     pile_card = tableau[layer][x];
     tableau[layer][x] = card_empty;
+}
+
+/****************************************************************************/
+void Board::stock2pile()
+{
+    assert(isstockend()==false);
+    stock_nowpos ++;
+    pile_card = stock[stock_nowpos];
 }
 
 /****************************************************************************/
@@ -293,9 +303,16 @@ void FunctionTest::test_test()
     CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,0), false );
     CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,1), true );
     
+    //remove test
     pBoard->remove(3,1);
     CPPUNIT_ASSERT_EQUAL(pBoard->tableau[3][1], 0);
     CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 2);
+
+    //stock2pile test
+    pBoard->stock2pile();
+    CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 2);
+    pBoard->stock2pile();
+    CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 3);
 }
 
 /****************************************************************************/
