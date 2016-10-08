@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 
 /****************************************************************************/
 #define WIDTH     10
@@ -34,6 +35,7 @@ class Board{
     void print();
     
     bool isremovable(int layer, int x);
+    void remove(int layer, int x);
 }board;
 
 /****************************************************************************/
@@ -145,6 +147,14 @@ bool Board::isremovable(int layer, int x)
     
     return true;
 }
+/****************************************************************************/
+void Board::remove(int layer, int x)
+{
+    assert(isremovable(layer,x));
+    pile_card = tableau[layer][x];
+    tableau[layer][x] = card_empty;
+}
+
 /****************************************************************************/
 void usage()
 {
