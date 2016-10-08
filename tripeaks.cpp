@@ -25,7 +25,7 @@ class Board{
     int stock_nowpos;
     int pile_card;
     
-    void init(){memset(tableau,0,sizeof(tableau)); memset(stock,0,sizeof(stock)); stock_nowpos=0;pile_card=card_empty;}
+    void init();
     int  c2i(char c);
     char i2c(int i){return " A234567890JQK*"[i];}
     void setTableau(int layer, int x, char val){tableau[layer][x]=c2i(val);}
@@ -33,6 +33,37 @@ class Board{
     void setStock_all(const char *);
     void print();
 }board;
+
+/****************************************************************************/
+void Board::init()
+{
+    memset(tableau,0,sizeof(tableau));
+    memset(stock,0,sizeof(stock));
+
+    tableau[0][0] = card_unknown;
+    tableau[0][3] = card_unknown;
+    tableau[0][6] = card_unknown;
+
+    tableau[1][0] = card_unknown;
+    tableau[1][1] = card_unknown;
+    tableau[1][3] = card_unknown;
+    tableau[1][4] = card_unknown;
+    tableau[1][6] = card_unknown;
+    tableau[1][7] = card_unknown;
+
+    tableau[2][0] = card_unknown;
+    tableau[2][1] = card_unknown;
+    tableau[2][2] = card_unknown;
+    tableau[2][3] = card_unknown;
+    tableau[2][4] = card_unknown;
+    tableau[2][5] = card_unknown;
+    tableau[2][6] = card_unknown;
+    tableau[2][7] = card_unknown;
+    tableau[2][8] = card_unknown;
+
+    stock_nowpos=0;
+    pile_card=card_empty;
+}
 
 /****************************************************************************/
 int Board::c2i(char c)
