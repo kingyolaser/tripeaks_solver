@@ -46,6 +46,7 @@ class Board{
     void inquire_card(int layer, int x);
     bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
     void stock2pile();
+    void undo();
 }board;
 
 /****************************************************************************/
@@ -226,6 +227,23 @@ void Board::stock2pile()
 }
 
 /****************************************************************************/
+void Board::undo()
+{
+    assert(tesuu>=1);
+    
+    if( history[tesuu-1].remove_layer == -1 && history[tesuu-1].remove_x ){
+        assert(stock_nowpos>=1);
+        pile_card = history[tesuu-1].pile_before;
+        stock_nowpos--;
+    }else{
+        tableau[history[tesuu-1].remove_layer][history[tesuu-1].remove_x] =
+             history[tesuu-1].pile_after;
+        pile_card = history[tesuu-1].pile_before;
+    }
+    tesuu --;
+}
+
+/****************************************************************************/
 void usage()
 {
     exit(0);
@@ -325,11 +343,13 @@ class FunctionTest : public CPPUNIT_NS::TestFixture{
     //テストクラス
     CPPUNIT_TEST_SUITE(FunctionTest);//登録のスタート
     CPPUNIT_TEST(test_test);
+    CPPUNIT_TEST(test_undo);
     CPPUNIT_TEST_SUITE_END();//登録の終了
 
 protected:
     Board *pBoard;
     void test_test();
+    void test_undo();
 
 public:
     void setUp();
@@ -380,6 +400,25 @@ void FunctionTest::test_test()
     pBoard->print();
 }
 
+/****************************************************************************/
+void FunctionTest::test_undo()
+{
+    pBoard->init();
+    pBoard->setTableau_layer3all("1234567890");
+    pBoard->setStock_all("1234567890JQK1234567890J");
+    //pBoard->print();
+    
+    //remove test
+    pBoard->remove(3,1); //card 2
+    pBoard->undo();
+    CPPUNIT_ASSERT_EQUAL(pBoard->tesuu, 0);
+    CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 1);
+    
+    pBoard->stock2pile();
+    pBoard->undo();
+    CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 1);
+    CPPUNIT_ASSERT_EQUAL(pBoard->stock_nowpos, 0);
+}
 /****************************************************************************/
 int test()
 {
