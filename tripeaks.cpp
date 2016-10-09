@@ -19,12 +19,19 @@ class Board{
     };
     //const static int WIDTH=10;
     //const static int STOCK_LEN=24;
+    struct _history{
+        int pile_before;
+        int pile_after;
+        int remove_layer;
+        int remove_x;    //remove_layer=remove_x=-1 means stock2pile
+    }history[52];
   
   
     int tableau[LAYERS][WIDTH];  //例：[1][1]の上(画面上は下)に[1][2], [2][2]がかぶってる
     int stock[STOCK_LEN+1];     //stock[0]が最初のカード。nullターミネート
     int stock_nowpos;
     int pile_card;
+    int tesuu;
     
     void init();
     int  c2i(char c);
@@ -46,7 +53,8 @@ void Board::init()
 {
     memset(tableau,0,sizeof(tableau));
     memset(stock,0,sizeof(stock));
-
+    memset(history,0,sizeof(history));
+    
     tableau[0][0] = card_unknown;
     tableau[0][3] = card_unknown;
     tableau[0][6] = card_unknown;
@@ -70,6 +78,7 @@ void Board::init()
 
     stock_nowpos=0;
     pile_card=card_empty;
+    tesuu = 0;
 }
 
 /****************************************************************************/
@@ -128,6 +137,17 @@ void Board::print()
     
     //pile
     printf("Pile: %c\n", i2c(pile_card) );
+
+    //history
+    printf("history: ");
+    for(int i=0; i<tesuu; i++){
+        if( history[i].remove_layer == -1 && history[i].remove_x == -1 ){
+            printf("st:");
+        }else{
+            printf("%d%d:", history[i].remove_layer, history[i].remove_x);
+        }
+    }
+    printf("\n");
 }
 
 /****************************************************************************/
@@ -154,6 +174,13 @@ bool Board::isremovable(int layer, int x)
 void Board::remove(int layer, int x)
 {
     assert(isremovable(layer,x));
+
+    history[tesuu].remove_layer = layer;
+    history[tesuu].remove_x     = x;
+    history[tesuu].pile_before = pile_card;
+    history[tesuu].pile_after  = tableau[layer][x];
+    tesuu ++;
+
     pile_card = tableau[layer][x];
     tableau[layer][x] = card_empty;
     
@@ -188,6 +215,12 @@ void Board::inquire_card(int layer, int x)
 void Board::stock2pile()
 {
     assert(isstockend()==false);
+    
+    history[tesuu].remove_layer = history[tesuu].remove_x = -1;
+    history[tesuu].pile_before = pile_card;
+    history[tesuu].pile_after  = stock[stock_nowpos];
+    tesuu ++;
+    
     stock_nowpos ++;
     pile_card = stock[stock_nowpos];
 }
