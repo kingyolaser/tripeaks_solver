@@ -48,6 +48,8 @@ class Board{
     void stock2pile();
     void undo();
     bool isComplete();
+    
+    void search_candidate(int layer[10], int x[10], int *num);
 }board;
 
 /****************************************************************************/
@@ -155,7 +157,9 @@ void Board::print()
 /****************************************************************************/
 bool Board::isremovable(int layer, int x)
 {
-    if( tableau[layer][x]==card_empty ){ return false; }
+    //exclude empty & unknown
+    if( tableau[layer][x]<1 || 13<tableau[layer][x] ){ return false; }
+
     if( layer<=2 ){
         if( tableau[layer+1][x]   != card_empty ){ return false;}
         if( tableau[layer+1][x+1] != card_empty ){ return false;}
@@ -253,6 +257,21 @@ bool Board::isComplete()
         }
     }
     return true;
+}
+
+/****************************************************************************/
+void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
+{
+    *num = 0;
+    for(int layer=LAYERS-1; layer>=0; layer--){
+        for( int x=WIDTH-1; x>=0; x--){
+            if( ! isremovable(layer,x) ){ continue; }
+            assert(*num<=10-1);
+            ret_layer[*num] = layer;
+            ret_x[*num] = x;
+            (*num)++;
+        }
+    }
 }
 
 /****************************************************************************/
@@ -356,12 +375,14 @@ class FunctionTest : public CPPUNIT_NS::TestFixture{
     CPPUNIT_TEST_SUITE(FunctionTest);//登録のスタート
     CPPUNIT_TEST(test_test);
     CPPUNIT_TEST(test_undo);
+    CPPUNIT_TEST(test_search_candidate);
     CPPUNIT_TEST_SUITE_END();//登録の終了
 
 protected:
     Board *pBoard;
     void test_test();
     void test_undo();
+    void test_search_candidate();
 
 public:
     void setUp();
@@ -432,6 +453,20 @@ void FunctionTest::test_undo()
     CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 1);
     CPPUNIT_ASSERT_EQUAL(pBoard->stock_nowpos, 0);
 }
+/****************************************************************************/
+void FunctionTest::test_search_candidate()
+{
+    pBoard->init();
+    pBoard->setTableau_layer3all("1234567890");
+    pBoard->setStock_all("1234567890JQK1234567890J");
+
+    int layer[10], x[10], num;
+    pBoard->search_candidate(layer, x, &num);
+    CPPUNIT_ASSERT_EQUAL(1, num);
+    CPPUNIT_ASSERT_EQUAL(3, layer[0]);
+    CPPUNIT_ASSERT_EQUAL(1, x[0]);
+}
+
 /****************************************************************************/
 int test()
 {
