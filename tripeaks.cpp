@@ -47,6 +47,7 @@ class Board{
     bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
     void stock2pile();
     void undo();
+    bool isComplete();
 }board;
 
 /****************************************************************************/
@@ -244,6 +245,17 @@ void Board::undo()
 }
 
 /****************************************************************************/
+bool Board::isComplete()
+{
+    for( int i=0; i<WIDTH; i++ ){
+        if( tableau[0][i] != card_empty ){
+            return false;
+        }
+    }
+    return true;
+}
+
+/****************************************************************************/
 void usage()
 {
     exit(0);
@@ -378,6 +390,7 @@ void FunctionTest::test_test()
     pBoard->print();
     
     //Pile top=A
+    CPPUNIT_ASSERT_EQUAL(false, pBoard->isComplete());
     CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(0,0), false );
     CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(0,1), false );
     CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,0), false );
