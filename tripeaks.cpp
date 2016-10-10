@@ -356,9 +356,11 @@ void action(Board &board);
 
 int main(int argc, char* argv[])
 {
+#ifdef TEST
     if(argc>=2 && strcmp(argv[1],"--test")==0 ){
         return test();
     }
+#endif
     
     board.init();
     read_layer3();
@@ -405,6 +407,7 @@ void action(Board &board)
 }
 
 /****************************************************************************/
+#ifdef TEST
 #include <cppunit/BriefTestProgressListener.h>
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
@@ -534,3 +537,4 @@ int test()
 
     return result.wasSuccessful() ? 0 : 1;
 }
+#endif //TEST
