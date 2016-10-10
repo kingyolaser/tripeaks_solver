@@ -106,7 +106,7 @@ void Board::setTableau_layer3all(const char *data)
 /****************************************************************************/
 void Board::setStock_all(const char *data)
 {
-    for(int i=0; i<WIDTH; i++){
+    for(int i=0; i<STOCK_LEN; i++){
         stock[i] = c2i(data[i]);
     }
     pile_card = stock[0];
@@ -140,7 +140,7 @@ void Board::print()
     printf("\n");
     
     //pile
-    printf("Pile: %c\n", i2c(pile_card) );
+    printf("Pile: %c(%d)\n", i2c(pile_card), pile_card );
 
     //history
     printf("history: ");
@@ -179,6 +179,7 @@ bool Board::isremovable(int layer, int x)
 /****************************************************************************/
 void Board::remove(int layer, int x)
 {
+    //printf("removing (%d,%d)\n", layer,x);
     assert(isremovable(layer,x));
 
     history[tesuu].remove_layer = layer;
@@ -192,7 +193,7 @@ void Board::remove(int layer, int x)
     
     //その下のカードがremove可能になったか判定
     if( layer>=1 ){
-        if( x>1 && tableau[layer][x-1]==card_empty
+        if( x>0 && tableau[layer][x-1]==card_empty
           && tableau[layer-1][x-1]==card_unknown ){ //左上
              inquire_card(layer-1, x-1);
         }
@@ -205,6 +206,7 @@ void Board::remove(int layer, int x)
 /****************************************************************************/
 void Board::inquire_card(int layer, int x)
 {
+    print();
     printf("inquire(%d,%d) >", layer, x);
     char buf[80];
     for(;;){
@@ -222,6 +224,7 @@ void Board::stock2pile()
 {
     assert(isstockend()==false);
     
+    //printf("stock2pile\n");
     history[tesuu].remove_layer = history[tesuu].remove_x = -1;
     history[tesuu].pile_before = pile_card;
     history[tesuu].pile_after  = stock[stock_nowpos];
@@ -236,6 +239,7 @@ void Board::undo()
 {
     assert(tesuu>=1);
     
+    //printf("undo!\n");
     if( history[tesuu-1].remove_layer == -1 && history[tesuu-1].remove_x ){
         assert(stock_nowpos>=1);
         pile_card = history[tesuu-1].pile_before;
@@ -264,7 +268,7 @@ void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
 {
     *num = 0;
     for(int layer=LAYERS-1; layer>=0; layer--){
-        for( int x=WIDTH-1; x>=0; x--){
+        for( int x=0; x<WIDTH; x++){
             if( ! isremovable(layer,x) ){ continue; }
             assert(*num<=10-1);
             ret_layer[*num] = layer;
@@ -348,6 +352,7 @@ void read_stock()
 }
 /****************************************************************************/
 int test();
+void action(Board &board);
 
 int main(int argc, char* argv[])
 {
@@ -359,6 +364,44 @@ int main(int argc, char* argv[])
     read_layer3();
     read_stock();
     board.print();
+    action(board);
+}
+
+/****************************************************************************/
+//候補手のストア
+struct _candidate_data{
+    int layer[10];
+    int x[10];
+    int num;
+    //int selecting;  //-1 means stock2pile
+} candidate_data[52];
+
+void action(Board &board)
+{
+    if( board.isComplete() ){
+        board.print();
+        printf("Congraturation!!\n");
+        exit(0);
+    }
+    
+    //board.print();
+    board.search_candidate(candidate_data[board.tesuu].layer,
+                           candidate_data[board.tesuu].x,
+                          &candidate_data[board.tesuu].num);
+    for( int i=0; i<candidate_data[board.tesuu].num; i++ ){
+        board.remove(candidate_data[board.tesuu].layer[i],
+                     candidate_data[board.tesuu].x    [i]);
+        action(board);  //もし関数から返ってきたら、NGだったということ
+        board.undo();
+    }
+    //forを抜けてしまった＝removeする手が全NG or removeできない
+    if( !board.isstockend() ){
+        board.stock2pile();
+        action(board);  //もし関数から返ってきたら、NGだったということ
+        board.undo();
+    }
+    
+    //ここまで来たら、すべての手がNG,どんずまり。
 }
 
 /****************************************************************************/
