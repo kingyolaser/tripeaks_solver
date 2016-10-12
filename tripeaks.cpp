@@ -47,7 +47,7 @@ class Board{
     bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
     void stock2pile();
     void undo();
-    bool isComplete();
+    bool isComplete(){return (tableau[0][0] == card_empty && tableau[0][3] == card_empty && tableau[0][6] == card_empty)? true:false;}
     
     void search_candidate(int layer[10], int x[10], int *num);
 }board;
@@ -250,17 +250,6 @@ void Board::undo()
         pile_card = history[tesuu-1].pile_before;
     }
     tesuu --;
-}
-
-/****************************************************************************/
-bool Board::isComplete()
-{
-    for( int i=0; i<WIDTH; i++ ){
-        if( tableau[0][i] != card_empty ){
-            return false;
-        }
-    }
-    return true;
 }
 
 /****************************************************************************/
