@@ -41,7 +41,7 @@ class Board{
     void setStock_all(const char *);
     void print();
     
-    bool isremovable(int layer, int x);
+    bool isremovable(int layer, int x)const;
     void remove(int layer, int x);
     void inquire_card(int layer, int x);
     bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
@@ -155,23 +155,25 @@ void Board::print()
 }
 
 /****************************************************************************/
-bool Board::isremovable(int layer, int x)
+bool Board::isremovable(int layer, int x) const
 {
-    //exclude empty & unknown
-    if( tableau[layer][x]<1 || 13<tableau[layer][x] ){ return false; }
+    int a,b;
+    if( pile_card == 1 ){
+        a=2; b=13;
+    } else if( pile_card == 13 ){
+        a=12; b=1;
+    } else {
+        a=pile_card-1;
+        b=pile_card+1;
+    }
+    
+    if( tableau[layer][x]!=a && tableau[layer][x]!=b ){
+        return false;
+    }
 
     if( layer<=2 ){
         if( tableau[layer+1][x]   != card_empty ){ return false;}
         if( tableau[layer+1][x+1] != card_empty ){ return false;}
-    }
-    
-    if( tableau[layer][x] == 1 ){
-        if( pile_card != 2 && pile_card != 13 ){ return false; }
-    } else if( tableau[layer][x] == 13 ){
-        if( pile_card != 1 && pile_card != 12 ){ return false; }
-    } else {
-        if( tableau[layer][x]+1 != pile_card
-         && tableau[layer][x]-1 != pile_card ){ return false; }
     }
     
     return true;
