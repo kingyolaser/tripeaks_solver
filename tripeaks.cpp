@@ -50,6 +50,7 @@ class Board{
     bool isComplete(){return (tableau[0][0] == card_empty && tableau[0][3] == card_empty && tableau[0][6] == card_empty)? true:false;}
     
     void search_candidate(int layer[10], int x[10], int *num);
+    bool simple_check_deadend();
 }board;
 
 /****************************************************************************/
@@ -268,6 +269,12 @@ void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
         }
     }
 }
+/****************************************************************************/
+bool Board::simple_check_deadend()
+{
+    //int 
+    return false;
+}
 
 /****************************************************************************/
 void usage()
@@ -375,6 +382,12 @@ void action(Board &board)
         board.print();
         printf("Congraturation!!\n");
         exit(0);
+    }
+    
+    if( board.tesuu==11 ){
+        printf("=======now testing==============\n");
+        board.print();
+        printf("================================\n");
     }
     
     //board.print();
