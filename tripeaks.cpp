@@ -38,6 +38,7 @@ class Board{
     char i2c(int i){return " A234567890JQK*"[i];}
     void setTableau(int layer, int x, char val){tableau[layer][x]=c2i(val);}
     void setTableau_layer3all(const char *);
+    void setTableau_layer(int layer, char *);
     void setStock_all(const char *);
     void print();
     
@@ -93,6 +94,7 @@ int Board::c2i(char c)
     const char *pos = strchr( table, c);
     if( pos ){return pos-table+1;}
     if( c=='1' ){return 1;}
+    if( c==' ' ){return card_empty;}
     return card_invalid;
 }
 
@@ -103,12 +105,28 @@ void Board::setTableau_layer3all(const char *data)
         tableau[3][i] = c2i(data[i]);
     }
 }
+/****************************************************************************/
+void Board::setTableau_layer(int layer, char *data)
+{
+    size_t len;
+    switch( layer ){
+    case 0: len=7; assert(strlen(data)>=len); break;
+    case 1: len=8; assert(strlen(data)>=len); break;
+    case 2: len=9; assert(strlen(data)>=len); break;
+    case 3: len=10; assert(strlen(data)>=len); break;
+    default: assert(false); break;
+    }
+    
+    for(size_t i=0; i<len; i++){
+        tableau[layer][i] = c2i(toupper(data[i]));
+    }
+}
 
 /****************************************************************************/
 void Board::setStock_all(const char *data)
 {
     for(int i=0; i<STOCK_LEN; i++){
-        stock[i] = c2i(data[i]);
+        stock[i] = c2i(toupper(data[i]));
     }
     pile_card = stock[0];
 }
@@ -361,8 +379,17 @@ int main(int argc, char* argv[])
 #endif
     
     board.init();
-    read_layer3();
-    read_stock();
+    
+    if( argc==6 ){
+        board.setTableau_layer(0, argv[1]);
+        board.setTableau_layer(1, argv[2]);
+        board.setTableau_layer(2, argv[3]);
+        board.setTableau_layer(3, argv[4]);
+        board.setStock_all(argv[5]);
+    }else{
+        read_layer3();
+        read_stock();
+    }
     board.print();
     action(board);
 }
