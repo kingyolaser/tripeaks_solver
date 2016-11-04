@@ -278,13 +278,17 @@ void Board::undo()
 void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
 {
     *num = 0;
-    for(int layer=LAYERS-1; layer>=0; layer--){
-        for( int x=0; x<WIDTH; x++){
-            if( ! isremovable(layer,x) ){ continue; }
-            assert(*num<=10-1);
-            ret_layer[*num] = layer;
-            ret_x[*num] = x;
-            (*num)++;
+    for( int x=0; x<WIDTH; x++){
+        for(int layer=LAYERS-1; layer>=0; layer--){
+            if( tableau[layer][x] == card_empty ){continue;}
+            if( isremovable(layer,x) ){
+                assert(*num<=10-1);
+                ret_layer[*num] = layer;
+                ret_x[*num] = x;
+                (*num)++;
+            }
+            //empty以外なので、どっちにしろもう上を調べる必要なし
+            break;
         }
     }
 }
