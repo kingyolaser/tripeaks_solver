@@ -52,6 +52,7 @@ class Board{
     
     void search_candidate(int layer[10], int x[10], int *num);
     bool simple_check_deadend();
+    bool exist(int a, int b);
 }board;
 
 /****************************************************************************/
@@ -159,7 +160,7 @@ void Board::print()
     printf("\n");
     
     //pile
-    printf("Pile: %c(%d)\n", i2c(pile_card), pile_card );
+    printf("Pile: %c(%d), nowpos=%d\n", i2c(pile_card), pile_card, stock_nowpos );
 
     //history
     printf("history: ");
@@ -290,8 +291,54 @@ void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
 /****************************************************************************/
 bool Board::simple_check_deadend()
 {
-    //int 
+    int check_card;
+    
+    //頂上の３枚の隣接カードが残っているかチェック
+    check_card = tableau[0][0];
+    if( 1<=check_card && check_card<=13 ){
+        int a = (check_card%13)+1;
+        int b = ((check_card+11)%13)+1;
+        if( ! exist(a,b) ){ return true; } //dead end
+    }
+    
+    check_card = tableau[0][3];
+    if( 1<=check_card && check_card<=13 ){
+        int a = (check_card%13)+1;
+        int b = ((check_card+11)%13)+1;
+        if( ! exist(a,b) ){ return true; } //dead end
+    }
+    
+    check_card = tableau[0][6];
+    if( 1<=check_card && check_card<=13 ){
+        int a = (check_card%13)+1;
+        int b = ((check_card+11)%13)+1;
+        if( ! exist(a,b) ){ return true; } //dead end
+    }
+
     return false;
+}
+/****************************************************************************/
+bool Board::exist(int a, int b)
+{
+    if( pile_card==a || pile_card==b ){
+        return true; //exist!
+    }
+
+    for( int i=stock_nowpos+1; i<STOCK_LEN; i++ ){
+        if( stock[i]==a || stock[i]==b ){
+            return true; //exist!
+        }
+    }
+
+    for( int layer=0; layer<LAYERS; layer++){
+        for( int x=0; x<WIDTH; x++ ){
+            if( tableau[layer][x]==a || tableau[layer][x]==b ){
+                return true; //exist!
+            }
+        }
+    }
+    
+    return false; //not exist
 }
 
 /****************************************************************************/
@@ -430,7 +477,21 @@ void action(Board &board)
     //forを抜けてしまった＝removeする手が全NG or removeできない
     if( !board.isstockend() ){
         board.stock2pile();
-        action(board);  //もし関数から返ってきたら、NGだったということ
+        
+        if( board.simple_check_deadend() ){
+            #if 0
+            if( board.stock_nowpos <=22 ){ //早期発見時 デバッグ表示
+                board.print();
+                printf("###This is dead end###\n");
+                printf("Hit enter\n");
+                char dummy[80];
+                fgets(dummy, 80, stdin);
+            }
+            #endif
+            //deadendなのでaction()しない
+        }else{
+            action(board);  //もし関数から返ってきたら、NGだったということ
+        }
         board.undo();
     }
     
