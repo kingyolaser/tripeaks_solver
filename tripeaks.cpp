@@ -27,7 +27,8 @@ class Board{
     }history[52];
   
   
-    int tableau[LAYERS][WIDTH];  //例：[1][1]の上(画面上は下)に[1][2], [2][2]がかぶってる
+    int tableau[LAYERS+2][WIDTH+1];  //layer=0,5は余裕分。常にemptyとする。
+                                   //例：[1][1]の上(画面上は下)に[1][2], [2][2]がかぶってる
     int stock[STOCK_LEN+1];     //stock[0]が最初のカード。nullターミネート
     int stock_nowpos;
     int pile_card;
@@ -37,7 +38,7 @@ class Board{
     int  c2i(char c);
     char i2c(int i){return " A234567890JQK*"[i];}
     void setTableau(int layer, int x, char val){tableau[layer][x]=c2i(val);}
-    void setTableau_layer3all(const char *);
+    void setTableau_layer4all(const char *);
     void setTableau_layer(int layer, char *);
     void setStock_all(const char *);
     void print();
@@ -48,7 +49,7 @@ class Board{
     bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
     void stock2pile();
     void undo();
-    bool isComplete(){return (tableau[0][0] == card_empty && tableau[0][3] == card_empty && tableau[0][6] == card_empty)? true:false;}
+    bool isComplete(){return (tableau[1][0] == card_empty && tableau[1][3] == card_empty && tableau[1][6] == card_empty)? true:false;}
     
     void search_candidate(int layer[10], int x[10], int *num);
     bool simple_check_deadend();
@@ -62,26 +63,26 @@ void Board::init()
     memset(stock,0,sizeof(stock));
     memset(history,0,sizeof(history));
     
-    tableau[0][0] = card_unknown;
-    tableau[0][3] = card_unknown;
-    tableau[0][6] = card_unknown;
-
     tableau[1][0] = card_unknown;
-    tableau[1][1] = card_unknown;
     tableau[1][3] = card_unknown;
-    tableau[1][4] = card_unknown;
     tableau[1][6] = card_unknown;
-    tableau[1][7] = card_unknown;
 
     tableau[2][0] = card_unknown;
     tableau[2][1] = card_unknown;
-    tableau[2][2] = card_unknown;
     tableau[2][3] = card_unknown;
     tableau[2][4] = card_unknown;
-    tableau[2][5] = card_unknown;
     tableau[2][6] = card_unknown;
     tableau[2][7] = card_unknown;
-    tableau[2][8] = card_unknown;
+
+    tableau[3][0] = card_unknown;
+    tableau[3][1] = card_unknown;
+    tableau[3][2] = card_unknown;
+    tableau[3][3] = card_unknown;
+    tableau[3][4] = card_unknown;
+    tableau[3][5] = card_unknown;
+    tableau[3][6] = card_unknown;
+    tableau[3][7] = card_unknown;
+    tableau[3][8] = card_unknown;
 
     stock_nowpos=0;
     pile_card=card_empty;
@@ -100,10 +101,10 @@ int Board::c2i(char c)
 }
 
 /****************************************************************************/
-void Board::setTableau_layer3all(const char *data)
+void Board::setTableau_layer4all(const char *data)
 {
     for(int i=0; i<WIDTH; i++){
-        tableau[3][i] = c2i(data[i]);
+        tableau[4][i] = c2i(data[i]);
     }
 }
 /****************************************************************************/
@@ -111,10 +112,10 @@ void Board::setTableau_layer(int layer, char *data)
 {
     size_t len;
     switch( layer ){
-    case 0: len=7; assert(strlen(data)>=len); break;
-    case 1: len=8; assert(strlen(data)>=len); break;
-    case 2: len=9; assert(strlen(data)>=len); break;
-    case 3: len=10; assert(strlen(data)>=len); break;
+    case 1: len=7; assert(strlen(data)>=len); break;
+    case 2: len=8; assert(strlen(data)>=len); break;
+    case 3: len=9; assert(strlen(data)>=len); break;
+    case 4: len=10; assert(strlen(data)>=len); break;
     default: assert(false); break;
     }
     
@@ -135,27 +136,27 @@ void Board::setStock_all(const char *data)
 /****************************************************************************/
 void Board::print()
 {
-    //layer 0
+    //layer 1
     printf("\n   ");
     for(int i=0; i<7; i++){
-        printf("%c ", i2c(tableau[0][i]));
-    }
-    printf("\n");
-    //layer 1
-    printf("  ");
-    for(int i=0; i<8; i++){
         printf("%c ", i2c(tableau[1][i]));
     }
     printf("\n");
     //layer 2
-    printf(" ");
-    for(int i=0; i<9; i++){
+    printf("  ");
+    for(int i=0; i<8; i++){
         printf("%c ", i2c(tableau[2][i]));
     }
     printf("\n");
-    //layer 1
-    for(int i=0; i<WIDTH; i++){
+    //layer 3
+    printf(" ");
+    for(int i=0; i<9; i++){
         printf("%c ", i2c(tableau[3][i]));
+    }
+    printf("\n");
+    //layer 4
+    for(int i=0; i<WIDTH; i++){
+        printf("%c ", i2c(tableau[4][i]));
     }
     printf("\n");
     
@@ -191,10 +192,10 @@ bool Board::isremovable(int layer, int x) const
         return false;
     }
 
-    if( layer<=2 ){
+    //if( layer<=3 ){
         if( tableau[layer+1][x]   != card_empty ){ return false;}
         if( tableau[layer+1][x+1] != card_empty ){ return false;}
-    }
+    //}
     
     return true;
 }
@@ -214,7 +215,7 @@ void Board::remove(int layer, int x)
     tableau[layer][x] = card_empty;
     
     //その下のカードがremove可能になったか判定
-    if( layer>=1 ){
+    if( layer>=2 ){
         if( x>0 && tableau[layer][x-1]==card_empty
           && tableau[layer-1][x-1]==card_unknown ){ //左上
              inquire_card(layer-1, x-1);
@@ -279,7 +280,7 @@ void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
 {
     *num = 0;
     for( int x=0; x<WIDTH; x++){
-        for(int layer=LAYERS-1; layer>=0; layer--){
+        for(int layer=LAYERS; layer>=1; layer--){
             if( tableau[layer][x] == card_empty ){continue;}
             if( isremovable(layer,x) ){
                 assert(*num<=10-1);
@@ -295,30 +296,31 @@ void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
 /****************************************************************************/
 bool Board::simple_check_deadend()
 {
+#if 0
     int check_card;
     
     //頂上の３枚の隣接カードが残っているかチェック
-    check_card = tableau[0][0];
+    check_card = tableau[1][0];
     if( 1<=check_card && check_card<=13 ){
         int a = (check_card%13)+1;
         int b = ((check_card+11)%13)+1;
         if( ! exist(a,b) ){ return true; } //dead end
     }
     
-    check_card = tableau[0][3];
+    check_card = tableau[1][3];
     if( 1<=check_card && check_card<=13 ){
         int a = (check_card%13)+1;
         int b = ((check_card+11)%13)+1;
         if( ! exist(a,b) ){ return true; } //dead end
     }
     
-    check_card = tableau[0][6];
+    check_card = tableau[1][6];
     if( 1<=check_card && check_card<=13 ){
         int a = (check_card%13)+1;
         int b = ((check_card+11)%13)+1;
         if( ! exist(a,b) ){ return true; } //dead end
     }
-
+#endif
     return false;
 }
 /****************************************************************************/
@@ -334,7 +336,7 @@ bool Board::exist(int a, int b)
         }
     }
 
-    for( int layer=0; layer<LAYERS; layer++){
+    for( int layer=1; layer<=LAYERS; layer++){
         for( int x=0; x<WIDTH; x++ ){
             if( tableau[layer][x]==a || tableau[layer][x]==b ){
                 return true; //exist!
@@ -352,11 +354,11 @@ void usage()
 }
 
 /****************************************************************************/
-void read_layer3()
+void read_layer4()
 {
     char  buf[80];
     for(;;){
-        printf("Input layer-3 sequence > ");
+        printf("Input layer-4 sequence > ");
         fgets(buf, sizeof(buf), stdin);
         
         //length check
@@ -381,7 +383,7 @@ void read_layer3()
         }
         break; //input OK
     }
-    board.setTableau_layer3all(buf);
+    board.setTableau_layer4all(buf);
 }
 
 /****************************************************************************/
@@ -432,13 +434,13 @@ int main(int argc, char* argv[])
     board.init();
     
     if( argc==6 ){
-        board.setTableau_layer(0, argv[1]);
-        board.setTableau_layer(1, argv[2]);
-        board.setTableau_layer(2, argv[3]);
-        board.setTableau_layer(3, argv[4]);
+        board.setTableau_layer(1, argv[1]);
+        board.setTableau_layer(2, argv[2]);
+        board.setTableau_layer(3, argv[3]);
+        board.setTableau_layer(4, argv[4]);
         board.setStock_all(argv[5]);
     }else{
-        read_layer3();
+        read_layer4();
         read_stock();
     }
     board.print();
@@ -548,20 +550,20 @@ void FunctionTest::testDown(){
 void FunctionTest::test_test()
 {
     pBoard->init();
-    pBoard->setTableau_layer3all("1234567890");
+    pBoard->setTableau_layer4all("1234567890");
     pBoard->setStock_all("1234567890JQK1234567890J");
     pBoard->print();
     
     //Pile top=A
     CPPUNIT_ASSERT_EQUAL(false, pBoard->isComplete());
-    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(0,0), false );
-    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(0,1), false );
-    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,0), false );
-    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(3,1), true );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(1,0), false );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(1,1), false );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(4,0), false );
+    CPPUNIT_ASSERT_EQUAL(pBoard->isremovable(4,1), true );
     
     //remove test
-    pBoard->remove(3,1); //card 2
-    CPPUNIT_ASSERT_EQUAL(pBoard->tableau[3][1], 0);
+    pBoard->remove(4,1); //card 2
+    CPPUNIT_ASSERT_EQUAL(pBoard->tableau[4][1], 0);
     CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 2);
 
     //stock2pile test
@@ -571,8 +573,8 @@ void FunctionTest::test_test()
     CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 3);
     
     //
-    pBoard->remove(3,3); //card 4
-    pBoard->remove(3,4); //card 5
+    pBoard->remove(4,3); //card 4
+    pBoard->remove(4,4); //card 5
     pBoard->print();
 }
 
@@ -580,12 +582,12 @@ void FunctionTest::test_test()
 void FunctionTest::test_undo()
 {
     pBoard->init();
-    pBoard->setTableau_layer3all("1234567890");
+    pBoard->setTableau_layer4all("1234567890");
     pBoard->setStock_all("1234567890JQK1234567890J");
     //pBoard->print();
     
     //remove test
-    pBoard->remove(3,1); //card 2
+    pBoard->remove(4,1); //card 2
     pBoard->undo();
     CPPUNIT_ASSERT_EQUAL(pBoard->tesuu, 0);
     CPPUNIT_ASSERT_EQUAL(pBoard->pile_card, 1);
@@ -599,13 +601,13 @@ void FunctionTest::test_undo()
 void FunctionTest::test_search_candidate()
 {
     pBoard->init();
-    pBoard->setTableau_layer3all("1234567890");
+    pBoard->setTableau_layer4all("1234567890");
     pBoard->setStock_all("1234567890JQK1234567890J");
 
     int layer[10], x[10], num;
     pBoard->search_candidate(layer, x, &num);
     CPPUNIT_ASSERT_EQUAL(1, num);
-    CPPUNIT_ASSERT_EQUAL(3, layer[0]);
+    CPPUNIT_ASSERT_EQUAL(4, layer[0]);
     CPPUNIT_ASSERT_EQUAL(1, x[0]);
 }
 
