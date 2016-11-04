@@ -1,6 +1,6 @@
 
 tripeaks: tripeaks.cpp
-	g++ -Wall -o $@ tripeaks.cpp
+	g++ -Wall -O3 -o $@ tripeaks.cpp
 
 tripeaks_test: tripeaks.cpp
 	g++ -g -Wall -DTEST -o $@ tripeaks.cpp -lcppunit
