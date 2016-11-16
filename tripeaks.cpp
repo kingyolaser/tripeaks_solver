@@ -462,7 +462,7 @@ void action(Board &board)
         exit(0);
     }
     
-    if( board.tesuu==11 ){
+    if( board.tesuu==9 ){
         printf("=======now testing==============\n");
         board.print();
         printf("================================\n");
