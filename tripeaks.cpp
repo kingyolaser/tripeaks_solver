@@ -136,6 +136,7 @@ void Board::setStock_all(const char *data)
 /****************************************************************************/
 void Board::print()
 {
+    printf("\n");
     //layer 1
     printf("\n   ");
     for(int i=1; i<=7; i++){
@@ -460,14 +461,19 @@ void action(Board &board)
         printf("Congraturation!!\n");
         exit(0);
     }
-    
+#ifdef DEBUG
     if( board.tesuu==9 ){
         printf("=======now testing==============\n");
         board.print();
         printf("================================\n");
     }
-    
-    //board.print();
+#else
+    if( board.tesuu==10 ){
+        printf(".");
+        fflush(stdout);
+    }
+#endif
+
     board.search_candidate(candidate_data[board.tesuu].layer,
                            candidate_data[board.tesuu].x,
                           &candidate_data[board.tesuu].num);
