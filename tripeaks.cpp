@@ -43,7 +43,12 @@ class Board{
     void setStock_all(const char *);
     void print();
     
+    bool isexposed(int layer, int x)const{return tableau[layer+1][x]== card_empty && tableau[layer+1][x+1]==card_empty;}
     bool isremovable(int layer, int x)const;
+    bool isremovable(int layer, int x, int a, int b)const{  //a,b: 事前算出したpile_cardの隣接値
+                return (tableau[layer][x]==a || tableau[layer][x]==b)
+                        && isexposed(layer,x);
+            }
     void remove(int layer, int x);
     void inquire_card(int layer, int x);
     bool isstockend(){ return stock_nowpos>=STOCK_LEN-1; }
@@ -192,13 +197,8 @@ bool Board::isremovable(int layer, int x) const
     if( tableau[layer][x]!=a && tableau[layer][x]!=b ){
         return false;
     }
-
-    //if( layer<=3 ){
-        if( tableau[layer+1][x]   != card_empty ){ return false;}
-        if( tableau[layer+1][x+1] != card_empty ){ return false;}
-    //}
     
-    return true;
+    return isexposed(layer,x);
 }
 /****************************************************************************/
 void Board::remove(int layer, int x)
@@ -277,11 +277,21 @@ void Board::undo()
 /****************************************************************************/
 void Board::search_candidate(int ret_layer[10], int ret_x[10], int *num)
 {
+    int a,b;
+    if( pile_card == 1 ){
+        a=2; b=13;
+    } else if( pile_card == 13 ){
+        a=12; b=1;
+    } else {
+        a=pile_card-1;
+        b=pile_card+1;
+    }
+
     *num = 0;
     for( int x=1; x<=WIDTH; x++){
         for(int layer=LAYERS; layer>=1; layer--){
             if( tableau[layer][x] == card_empty ){continue;}
-            if( isremovable(layer,x) ){
+            if( isremovable(layer,x,a,b) ){
                 assert(*num<=10-1);
                 ret_layer[*num] = layer;
                 ret_x[*num] = x;
